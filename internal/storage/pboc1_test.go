@@ -53,3 +53,33 @@ func TestPBOC1BadLength(t *testing.T) {
 		t.Fatal("expected KEYLEN_INVALID")
 	}
 }
+
+func TestPBOC1PutOverwritesInPlace(t *testing.T) {
+	dir := t.TempDir()
+	lsk := bytes.Repeat([]byte{0x11}, 16)
+	selector := keymodel.PBOC1Key{Block: 1, Type: 1, Version: 0, Index: 1, Alg: 0, Div: 0, Exp: 0,
+		Length: 16, Key: bytes.Repeat([]byte{0xAA}, 16)}
+	if err := PutPBOC1(dir, lsk, selector); err != nil {
+		t.Fatal(err)
+	}
+	// Second put with SAME selector but different key must overwrite, not append.
+	updated := selector
+	updated.Key = bytes.Repeat([]byte{0xBB}, 16)
+	if err := PutPBOC1(dir, lsk, updated); err != nil {
+		t.Fatal(err)
+	}
+	all, err := ReadAllPBOC1(dir, lsk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("overwrite should keep 1 slot, got %d (append bug?)", len(all))
+	}
+	got, err := GetPBOC1(dir, lsk, selector.Block, selector.Type, selector.Version, selector.Index)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got.Key, updated.Key) {
+		t.Fatalf("key not updated: got %x want %x", got.Key, updated.Key)
+	}
+}
