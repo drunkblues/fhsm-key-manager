@@ -27,6 +27,7 @@ func newRootCmd() *cobra.Command {
 	root.AddCommand(newPBOC2Cmd())
 	root.AddCommand(newRSACmd())
 	root.AddCommand(newSM2Cmd())
+	root.AddCommand(newECCCmd())
 	return root
 }
 
