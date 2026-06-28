@@ -35,3 +35,13 @@ func TestRSAGenGetDelete(t *testing.T) {
 		t.Fatalf("delete: %v", err)
 	}
 }
+
+func TestRSAPutRejectsInvalidDER(t *testing.T) {
+	dir := t.TempDir()
+	if err := PutRSA(dir, keymodel.RSAKey{Index: 1, PrivDer: []byte("not-a-valid-der")}); err == nil {
+		t.Fatal("expected DER_INVALID for garbage DER")
+	}
+	if err := PutRSA(dir, keymodel.RSAKey{Index: 1, PrivDer: []byte{}}); err == nil {
+		t.Fatal("expected DER_INVALID for empty DER")
+	}
+}

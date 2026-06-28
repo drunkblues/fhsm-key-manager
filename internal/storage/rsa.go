@@ -35,6 +35,9 @@ func GetRSA(root string, index int) (keymodel.RSAKey, error) {
 		}
 		return keymodel.RSAKey{}, err
 	}
+	if _, err := x509.ParsePKCS1PrivateKey(data); err != nil {
+		return keymodel.RSAKey{}, keymodel.NewError("DER_INVALID", "rsa index %d privDer corrupt: %v", index, err)
+	}
 	k := keymodel.RSAKey{Index: index, PrivDer: data}
 	if m := rsaModulusBits(data); m > 0 {
 		k.ModulusLen = m
@@ -67,6 +70,12 @@ func ListRSA(root string) ([]keymodel.RSAMeta, error) {
 }
 
 func PutRSA(root string, k keymodel.RSAKey) error {
+	if len(k.PrivDer) == 0 {
+		return keymodel.NewError("DER_INVALID", "rsa privDer is empty")
+	}
+	if _, err := x509.ParsePKCS1PrivateKey(k.PrivDer); err != nil {
+		return keymodel.NewError("DER_INVALID", "rsa privDer is not valid PKCS#1: %v", err)
+	}
 	if err := os.MkdirAll(filepath.Join(root, rsaDir), 0755); err != nil {
 		return err
 	}
