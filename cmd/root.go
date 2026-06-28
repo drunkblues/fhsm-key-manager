@@ -23,6 +23,8 @@ func newRootCmd() *cobra.Command {
 	root.PersistentFlags().StringVar(&flagLSK, "lsk", "00000000000000000000000000000000", "LSK hex (16 bytes) for 3DES; default all-zero")
 	root.PersistentFlags().BoolVar(&flagVerbose, "verbose", false, "print progress to stderr")
 	root.AddCommand(newVersionCmd())
+	root.AddCommand(newPBOC1Cmd())
+	root.AddCommand(newPBOC2Cmd())
 	return root
 }
 
