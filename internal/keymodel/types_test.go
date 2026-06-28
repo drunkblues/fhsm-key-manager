@@ -38,3 +38,40 @@ func TestErrorFormat(t *testing.T) {
 		t.Errorf("bad error: %+v", e)
 	}
 }
+
+func TestB64BytesUnmarshalRoundTrip(t *testing.T) {
+	orig := B64Bytes{0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x02}
+	k := RSAKey{Index: 1, PrivDer: orig}
+	data, err := json.Marshal(k)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got RSAKey
+	if err := json.Unmarshal(data, &got); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if len(got.PrivDer) != len(orig) {
+		t.Fatalf("len %d != %d", len(got.PrivDer), len(orig))
+	}
+	for i := range orig {
+		if got.PrivDer[i] != orig[i] {
+			t.Fatalf("byte %d: %x != %x", i, got.PrivDer[i], orig[i])
+		}
+	}
+}
+
+func TestHexBytesInvalidHex(t *testing.T) {
+	var k PBOC1Key
+	bad := `{"block":0,"type":0,"version":0,"index":0,"alg":0,"div":0,"exp":0,"length":1,"key":"zz"}`
+	if err := json.Unmarshal([]byte(bad), &k); err == nil {
+		t.Fatal("expected error for invalid hex")
+	}
+}
+
+func TestB64BytesInvalidBase64(t *testing.T) {
+	var k RSAKey
+	bad := `{"index":1,"privDer":"!!!not-base64!!!"}`
+	if err := json.Unmarshal([]byte(bad), &k); err == nil {
+		t.Fatal("expected error for invalid base64")
+	}
+}

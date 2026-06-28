@@ -11,8 +11,10 @@ type Error struct {
 	Msg  string
 }
 
-func (e *Error) Error() string                         { return e.Msg }
-func NewError(code, format string, args ...any) *Error { return &Error{Code: code, Msg: fmt.Sprintf(format, args...)} }
+func (e *Error) Error() string { return e.Msg }
+func NewError(code, format string, args ...any) *Error {
+	return &Error{Code: code, Msg: fmt.Sprintf(format, args...)}
+}
 
 func OutputJSON(v any) {
 	enc := json.NewEncoder(os.Stdout)
