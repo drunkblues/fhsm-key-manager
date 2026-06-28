@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 )
 
@@ -13,7 +14,14 @@ func TestVersionOutputsJSON(t *testing.T) {
 	if err := root.Execute(); err != nil {
 		t.Fatalf("execute: %v", err)
 	}
-	if !bytes.Contains(out.Bytes(), []byte(`"name": "fhsm-key-manager"`)) {
-		t.Errorf("unexpected output: %s", out.String())
+	var m map[string]string
+	if err := json.Unmarshal(bytes.TrimSpace(out.Bytes()), &m); err != nil {
+		t.Fatalf("output not valid JSON: %v\n%s", err, out.String())
+	}
+	if m["name"] != "fhsm-key-manager" {
+		t.Errorf("name=%q", m["name"])
+	}
+	if m["version"] == "" {
+		t.Error("version empty")
 	}
 }
